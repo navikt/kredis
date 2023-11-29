@@ -1,4 +1,4 @@
-package no.nav.aap.redis
+package no.nav.redis
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.testcontainers.containers.GenericContainer

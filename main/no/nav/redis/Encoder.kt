@@ -1,4 +1,4 @@
-package no.nav.aap.redis
+package no.nav.redis
 
 import java.io.BufferedOutputStream
 import java.net.Socket
