@@ -1,11 +1,17 @@
 package no.nav.aap.redis
 
-import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
 import java.net.Socket
+import java.net.URI
+
+data class RedisConfig(
+    val uri: URI,
+    val username: String,
+    val password: String,
+)
 
 open class Redis(private val config: RedisConfig) {
     internal open fun connect(): Managed = ManagedImpl().also {
+        it.call("HELLO", 3)
         it.call("AUTH", config.username, config.password)
     }
 
@@ -26,7 +32,8 @@ open class Redis(private val config: RedisConfig) {
     }
 
     fun ready(): Boolean = connect().use {
-        it.call("PING")?.let { response -> String(response as ByteArray) } == "PONG"
+        val ping = (it.call("PING") as? ByteArray)?.let(::String)
+        return ping == "PONG"
     }
 
     interface Managed : AutoCloseable {
@@ -34,15 +41,18 @@ open class Redis(private val config: RedisConfig) {
     }
 
     inner class ManagedImpl : Managed, AutoCloseable {
-        private val socket = Socket(config.uri.host, config.uri.port)
-        private val writer = Encoder(BufferedOutputStream(socket.getOutputStream()))
-        private val reader = Parser(BufferedInputStream(socket.getInputStream()))
+        private val socket = Socket(config.uri.host, config.uri.port).apply {
+            tcpNoDelay = true
+            keepAlive = true
+        }
+        private val encoder = Encoder(socket)
+        private val decoder = Decoder(socket)
 
         // See [docs](https://redis.io/commands)
         override fun call(vararg args: Any): Any? {
-            writer.write(args.toList())
-            writer.flush()
-            return reader.parse()
+            encoder.write(args.toList()).also { encoder.close() }
+//            writer.flush()
+            return decoder.read().also { decoder.close() }
         }
 
         override fun close() {

@@ -15,11 +15,7 @@ class RedisFake(config: RedisConfig) : Redis(config) {
                 "GET" -> cache[args[1] as String]
                 "DEL" -> cache.remove(args[1] as String)
                 "PING" -> "PONG".toByteArray()
-                "SET" -> {
-                    cache[args[1] as String] = args[2] as ByteArray
-                    null
-                }
-
+                "SET" -> null.also { cache[args[1] as String] = args[2] as ByteArray }
                 else -> null
             }
         }
@@ -40,6 +36,6 @@ class RedisFakeTest {
         redis["key"] = "value".toByteArray()
         assertEquals("value", String(requireNotNull(redis["key"])))
         redis.del("key")
-        assertEquals(null, redis.get("key"))
+        assertEquals(null, redis["key"])
     }
 }

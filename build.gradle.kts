@@ -4,11 +4,11 @@ plugins {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("org.testcontainers:testcontainers:1.17.2")
 }
 
 repositories {
     mavenCentral()
-    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
 
 tasks {
@@ -22,5 +22,3 @@ tasks {
 
 kotlin.sourceSets["main"].kotlin.srcDirs("main")
 kotlin.sourceSets["test"].kotlin.srcDirs("test")
-sourceSets["main"].resources.srcDirs("main")
-sourceSets["test"].resources.srcDirs("test")
